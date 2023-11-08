@@ -172,6 +172,7 @@ class HaFAS(SensorEntity):
             "delay_arrival": str(delay_arrival),
             "delay_arrival_minutes": delay_arrival_minutes,
             "real_departure": real_departure.strftime("%H:%M"),
+            "real_arrival": real_arrival.strftime("%H:%M"),
         }
         
         next_departure = "No connection possible"
