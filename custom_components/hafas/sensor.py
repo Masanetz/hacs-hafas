@@ -141,6 +141,15 @@ class HaFAS(SensorEntity):
             timedelta() if last_leg.arrivalDelay is None else last_leg.arrivalDelay
         )
         if (
+            last_leg.arrivalDelay is not None
+            and last_leg.arrivalDelay != timedelta()
+        ):
+            delay_arrival_minutes = int( last_leg.arrivalDelay.total_seconds() // 60)
+            real_arrival = last_leg.arrival + last_leg.arrivalDelay
+        else:
+            real_arrival = last_leg.arrival
+            delay_arrival_minutes = 0
+        if (
             first_leg.departureDelay is not None
             and first_leg.departureDelay != timedelta()
         ):
