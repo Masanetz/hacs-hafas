@@ -193,6 +193,7 @@ class HaFAS(SensorEntity):
             next_departure = next_leg.departure
             next_cancelled = next_leg.cancelled
             next_arrival = self.journeys[1].legs[-1].arrival
+            next_real_arrival = next_arrival
             if (
                 next_leg.departureDelay is not None
                 and next_leg.departureDelay != timedelta()
@@ -206,9 +207,7 @@ class HaFAS(SensorEntity):
                 and self.journeys[1].legs[-1].arrivalDelay != timedelta()
             ):
                 next_delay_arrival_minutes = int( self.journeys[1].legs[-1].arrivalDelay.total_seconds() // 60)
-                next_real_arrival = self.journeys[1].legs[-1].arrival + self.journeys[1].legs[-1]..arrivalDelay
-            else:
-                next_real_arrival = self.journeys[1].legs[-1].arrival
+                next_real_arrival = next_arrival + self.journeys[1].legs[-1].arrivalDelay
             next_delay = (
                 timedelta()
                 if next_leg.departureDelay is None
