@@ -152,7 +152,7 @@ class HaFAS(SensorEntity):
             
         connections = {
             "departure": first_leg.departure.strftime("%H:%M"),
-            "arrival": last_leg.arrival,
+            "arrival": last_leg.arrival.strftime("%H:%M"),
             "transfers": len(journey.legs) - 1,
             "time": str(duration),
             "products": products,
