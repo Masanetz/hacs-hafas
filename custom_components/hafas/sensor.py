@@ -170,6 +170,7 @@ class HaFAS(SensorEntity):
             "delay_minutes": delay_minutes,
             "cancelled": first_leg.cancelled,
             "delay_arrival": str(delay_arrival),
+            "delay_arrival_minutes": delay_arrival_minutes,
             "real_departure": real_departure.strftime("%H:%M"),
         }
         
