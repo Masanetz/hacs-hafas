@@ -206,7 +206,7 @@ class HaFAS(SensorEntity):
                 and self.journeys[1].legs[-1].arrivalDelay != timedelta()
             ):
                 next_delay_arrival_minutes = int( self.journeys[1].legs[-1].arrivalDelay.total_seconds() // 60)
-                next_real_arrival = self.journeys[1].legs[-1]..arrival + self.journeys[1].legs[-1]..arrivalDelay
+                next_real_arrival = self.journeys[1].legs[-1].arrival + self.journeys[1].legs[-1]..arrivalDelay
             else:
                 next_real_arrival = self.journeys[1].legs[-1].arrival
             next_delay = (
