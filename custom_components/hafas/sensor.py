@@ -140,38 +140,95 @@ class HaFAS(SensorEntity):
         delay_arrival = (
             timedelta() if last_leg.arrivalDelay is None else last_leg.arrivalDelay
         )
-
+        if (
+            first_leg.departureDelay is not None
+            and first_leg.departureDelay != timedelta()
+        ):
+            delay_minutes = int( first_leg.departureDelay.total_seconds() // 60)
+            real_departure = first_leg.departure + first_leg.departureDelay
+        else:
+            real_departure = first_leg.departure
+            delay_minutes = 0
+            
         connections = {
-            "departure": first_leg.departure,
+            "departure": first_leg.departure.strftime("%H:%M"),
             "arrival": last_leg.arrival,
             "transfers": len(journey.legs) - 1,
             "time": str(duration),
             "products": products,
             "ontime": delay == timedelta(),
             "delay": str(delay),
-            "canceled": first_leg.cancelled,
+            "delay_minutes": delay_minutes,
+            "cancelled": first_leg.cancelled,
             "delay_arrival": str(delay_arrival),
+            "real_departure": real_departure.strftime("%H:%M"),
         }
-
-        next_connection = "No connection possible"
+        
+        next_departure = "No connection possible"
+        next_cancelled = 'false'
+        next_delay = "0:00:00"
+        next_delay_minutes = 0
+        next_real_departure = "No connection possible"
         if (
             len(self.journeys) > 1
             and self.journeys[1].legs is not None
             and len(self.journeys[1].legs) > 0
         ):
-            next_connection = self.journeys[1].legs[0].departure
+            next_leg = self.journeys[1].legs[0]
+            next_departure = next_leg.departure
+            next_cancelled = next_leg.cancelled
+            if (
+                next_leg.departureDelay is not None
+                and next_leg.departureDelay != timedelta()
+            ):
+                next_delay_minutes = int( next_leg.departureDelay.total_seconds() // 60)
+                next_real_departure = next_leg.departure + next_leg.departureDelay
+            else:
+                next_real_departure = next_leg.departure
+            next_delay = (
+                timedelta()
+                if next_leg.departureDelay is None
+                else next_leg.departureDelay
+            )
+            
+        connections["next_departure"] = next_departure.strftime("%H:%M")
+        connections["next_cancelled"] = next_cancelled
+        connections["next_delay"] = str(next_delay)
+        connections["next_delay_minutes"] = next_delay_minutes
+        connections["next_real_departure"] = next_real_departure.strftime("%H:%M")
 
-        connections["next"] = next_connection
-
-        next_on_connection = "No connection possible"
+        next_on_departure = "No connection possible"
+        next_on_cancelled = 'false'
+        next_on_delay = "0:00:00"
+        next_on_delay_minutes = 0
+        next_on_real_departure = "No connection possible"
         if (
             len(self.journeys) > 2
             and self.journeys[2].legs is not None
             and len(self.journeys[2].legs) > 0
         ):
-            next_on_connection = self.journeys[2].legs[0].departure
+            next_on_leg = self.journeys[2].legs[0]
+            next_on_departure = next_on_leg.departure
+            next_on_cancelled = next_on_leg.cancelled
+            if (
+                next_on_leg.departureDelay is not None
+                and next_on_leg.departureDelay != timedelta()
+            ):
+                next_on_delay_minutes = int( next_on_leg.departureDelay.total_seconds() // 60)
+                next_on_real_departure = next_on_leg.departure + next_on_leg.departureDelay
+            else:
+                next_on_real_departure = next_on_leg.departure
+            next_on_delay = (
+                timedelta()
+                if next_on_leg.departureDelay is None
+                else next_on_leg.departureDelay
+            )
 
-        connections["next_on"] = next_on_connection
+        connections["next_on_departure"] = next_on_departure.strftime("%H:%M")
+        connections["next_on_cancelled"] = next_on_cancelled
+        connections["next_on_delay"] = str(next_on_delay)
+        connections["next_on_delay_minutes"] = next_on_delay_minutes
+        connections["next_on_real_departure"] = next_on_real_departure.strftime("%H:%M")
 
         return connections
 
