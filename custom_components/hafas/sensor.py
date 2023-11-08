@@ -205,6 +205,7 @@ class HaFAS(SensorEntity):
         next_on_delay = "0:00:00"
         next_on_delay_minutes = 0
         next_on_real_departure = "No connection possible"
+        next_on_arrival = "No connection possible"
         if (
             len(self.journeys) > 2
             and self.journeys[2].legs is not None
@@ -213,6 +214,7 @@ class HaFAS(SensorEntity):
             next_on_leg = self.journeys[2].legs[0]
             next_on_departure = next_on_leg.departure
             next_on_cancelled = next_on_leg.cancelled
+            next_on_arrival = self.journeys[1].legs[-1].arrival
             if (
                 next_on_leg.departureDelay is not None
                 and next_on_leg.departureDelay != timedelta()
@@ -232,6 +234,7 @@ class HaFAS(SensorEntity):
         connections["next_on_delay"] = str(next_on_delay)
         connections["next_on_delay_minutes"] = next_on_delay_minutes
         connections["next_on_real_departure"] = next_on_real_departure.strftime("%H:%M")
+        connections["next_on_arrival"] = next_arrival.strftime("%H:%M")
 
         return connections
 
