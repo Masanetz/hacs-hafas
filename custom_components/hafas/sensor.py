@@ -215,8 +215,8 @@ class HaFAS(SensorEntity):
             )
             next_delay_arrival = (
                 timedelta()
-                if elf.journeys[1].legs[-1].arrivalDelay is None
-                else elf.journeys[1].legs[-1].arrivalDelay
+                if self.journeys[1].legs[-1].arrivalDelay is None
+                else self.journeys[1].legs[-1].arrivalDelay
             )
             
         connections["next_departure"] = next_departure.strftime("%H:%M")
