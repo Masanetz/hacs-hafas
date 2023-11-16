@@ -1,0 +1,198 @@
+blueprint:
+  name: AWTRIX MyHAFAS
+  domain: automation
+  input:
+    awtrix:
+      name: AWTRIX Device
+      description: Select the Awtrix light device
+      selector:
+        device:
+          integration: mqtt
+          manufacturer: Blueforcer
+          model: AWTRIX Light
+          multiple: true
+    train_tracks:
+      name: Verbindung
+      description: Bahnverbindung
+      selector:
+        entity:
+          integration: myhafas
+          multiple: false
+    awtrix_app_name:
+      name: AWTRIX Application name
+      description: This is the custom app name that will be added to AWTRIX, should be unique
+      selector:
+        text: {}
+      default: abfahrten
+    awtrix_app_prefix:
+      name: AWTRIX Application Prefix
+      description: This is the custom app prefix that will be added to AWTRIX, should be unique
+      selector:
+        text: {}
+      default: "A->B:"
+    traintype_icon:
+      name: Icon
+      description: Enter the Icon Name or ID of the icon for the train type (S/RE/RB etc.)
+      selector:
+        text:
+      default: "33013"
+variables:
+  device_ids: !input awtrix
+  awtrix_devices: >-
+    {%- set ns = namespace(awtrix = []) -%}
+    {%- for device_id in device_ids -%}
+      {%- set device_name = iif(device_attr(device_id, 'name_by_user') != none, device_attr(device_id, 'name_by_user'), device_attr(device_id, 'name')) -%}
+      {%- set entity = expand(device_entities(device_id)) | select('search', 'device_topic') | map(attribute='entity_id') | first -%}
+      {%- set topic = states(entity) -%}
+      {% set ns.awtrix = ns.awtrix + [{"device": device_name, "entity": entity, "topic": topic}] -%}
+    {%- endfor -%}
+    {{ ns.awtrix }}
+  app: !input awtrix_app_name
+  message_topic: "{{ '/custom/' ~ app }}"
+  sensor_traintrack: !input train_tracks
+  icon: !input traintype_icon
+  prefix_direction: !input awtrix_app_prefix
+  payload_abfahrten: >-
+    {%- set departure = state_attr( sensor_traintrack, 'real_departure' ) %}
+    {%- set cancelled = state_attr( sensor_traintrack, 'cancelled') %}
+    {%- set delay = state_attr( sensor_traintrack, 'delay_minutes' ) %}
+
+    {%- set direction = prefix_direction %}
+
+    {%- if cancelled %}
+      {%- set color = "#FF2020" %}
+      {%- set canceltext = " - entfällt!" %}
+      {%- set delaytext_p = "" %}
+      {%- set delaytext_b = "" %}
+      {%- set delaytext_s = "" %}
+    {%- else %}
+      {%- set canceltext = "" %}
+      {%- set delaytext_p = " (+" %}
+      {%- set delaytext_b = state_attr( sensor_traintrack, 'delay_minutes' ) %}
+      {%- set delaytext_s = ")" %}
+      {%- if delay > 10 %}
+        {%- set color = "#FF2020" %}
+      {%- elif delay > 2 %}
+        {%- set color = "#FFFF20" %}
+      {%- else %}
+        {%- set color = "#20FF20" %}
+        {%- if delay == 0 %}
+          {%- set delaytext_p = "" %}
+          {%- set delaytext_b = "" %}
+          {%- set delaytext_s = "" %}
+        {%- endif %}
+      {%- endif %}
+    {%- endif %}
+
+    {%- set next_departure = state_attr( sensor_traintrack, 'next_real_departure' ) %}
+    {%- set next_cancelled = state_attr( sensor_traintrack, 'next_cancelled') %}
+    {%- set next_delay = state_attr( sensor_traintrack, 'next_delay_minutes' ) %}
+        
+    {%- if next_cancelled %}
+      {%- set next_color = "#FF2020" %}
+      {%- set next_canceltext = " - entfällt!" %}
+      {%- set next_delaytext_p = "" %}
+      {%- set next_delaytext_b = "" %}
+      {%- set next_delaytext_s = "" %}
+    {%- else %}
+      {%- set next_canceltext = "" %}
+      {%- set next_delaytext_p = " (+" %}
+      {%- set next_delaytext_b = state_attr( sensor_traintrack, 'next_delay_minutes' ) %}
+      {%- set next_delaytext_s = ")" %}
+      {%- if next_delay > 10 %}
+        {%- set next_color = "#FF2020" %}
+      {%- elif next_delay > 2 %}
+        {%- set next_color = "#FFFF20" %}
+      {%- else %}
+        {%- set next_color = "#20FF20" %}
+        {%- if next_delay == 0 %}
+          {%- set next_delaytext_p = "" %}
+          {%- set next_delaytext_b = "" %}
+          {%- set next_delaytext_s = "" %}
+        {%- endif %}
+      {%- endif %}
+    {%- endif %}
+
+    {%- set next_on_departure = state_attr( sensor_traintrack, 'next_on_real_departure' ) %}
+    {%- set next_on_cancelled = state_attr( sensor_traintrack, 'next_on_cancelled') %}
+    {%- set next_on_delay = state_attr( sensor_traintrack, 'next_on_delay_minutes' ) %}
+        
+    {%- if next_on_cancelled %}
+      {%- set next_on_color = "#FF2020" %}
+      {%- set next_on_canceltext = " - entfällt!" %}
+      {%- set next_on_delaytext_p = "" %}
+      {%- set next_on_delaytext_b = "" %}
+      {%- set next_on_delaytext_s = "" %}
+    {%- else %}
+      {%- set next_on_canceltext = "" %}
+      {%- set next_on_delaytext_p = " (+" %}
+      {%- set next_on_delaytext_b = state_attr( sensor_traintrack, 'next_on_delay_minutes' ) %}
+      {%- set next_on_delaytext_s = ")" %}
+      {%- if next_on_delay > 10 %}
+        {%- set next_on_color = "#FF2020" %}
+      {%- elif next_on_delay > 2 %}
+        {%- set next_on_color = "#FFFF20" %}
+      {%- else %}
+        {%- set next_on_color = "#20FF20" %}
+        {%- if next_on_delay == 0 %}
+          {%- set next_on_delaytext_p = "" %}
+          {%- set next_on_delaytext_b = "" %}
+          {%- set next_on_delaytext_s = "" %}
+        {%- endif %}
+      {%- endif %}
+    {%- endif %}
+
+    {
+      "icon": {{ icon }},
+      "repeat": 2,
+      "textCase": 2,
+      "text": [
+        {
+          "t": "{{ direction }} ",
+          "c": "#FFFFFF"
+        },
+        {
+          "t": "{{ departure }}{{ delaytext_p }}{{ delaytext_b }}{{ delaytext_s }}{{ canceltext }}",
+          "c": "{{ color }}"
+        },
+        {
+          "t": " - ",
+          "c": "#FFFFFF"
+        },
+                {
+          "t": "{{ next_departure }}{{ next_delaytext_p }}{{ next_delaytext_b }}{{ next_delaytext_s }}{{ next_canceltext }}",
+          "c": "{{ next_color }}"
+        },
+        {
+          "t": " - ",
+          "c": "#FFFFFF"
+        },
+                {
+          "t": "{{ next_on_departure }}{{ next_on_delaytext_p }}{{ next_on_delaytext_b }}{{ next_on_delaytext_s }}{{ next_on_canceltext }}",
+          "c": "{{ next_on_color }}"
+        }
+      ]
+    }
+    
+trigger:
+  - platform: state
+    entity_id:
+      - !input train_tracks
+condition: []
+action:
+  - repeat:
+      for_each: "{{ awtrix_devices }}"
+      sequence:
+        - choose:
+            - conditions:
+                - condition: template
+                  value_template: >
+                    {{ states(repeat.item.entity) not in ['unavailable', 'unknown'] }}
+              sequence:
+                    - service: mqtt.publish
+                      data:
+                        qos: 0
+                        retain: false
+                        topic: "{{ repeat.item.topic ~ message_topic }}"
+                        payload: "{{ payload_abfahrten }}"
+
