@@ -1,6 +1,6 @@
 """Constants for the HaFAS integration."""
 
-DOMAIN = "hafas"
+DOMAIN = "myhafas"
 
 CONF_PROFILE = "profile"
 CONF_DESTINATION = "destination"
