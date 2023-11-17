@@ -36,8 +36,8 @@ blueprint:
       selector:
         text:
       default: "33013"
-    person_at_home:
-      name: Person
+    persons_home:
+      name: Persons at home
       selector:
         entity:
           domain: person
@@ -58,6 +58,9 @@ variables:
   sensor_traintrack: !input train_tracks
   icon: !input traintype_icon
   prefix_direction: !input awtrix_app_prefix
+  persons_at_home: !input persons_home
+  persons_to_check: "{{ persons_at_home | list | count > 0}}"
+  persons_home: "{{ persons_at_home | select ('is_state', 'home') | list | count > 0}}"
   payload_abfahrten: >-
     {%- set departure = state_attr( sensor_traintrack, 'real_departure' ) %}
     {%- set cancelled = state_attr( sensor_traintrack, 'cancelled') %}
@@ -150,7 +153,7 @@ variables:
 
     {
       "icon": {{ icon }},
-      "repeat": 2,
+      "repeat": 2,0
       "textCase": 2,
       "text": [
         {
@@ -195,10 +198,27 @@ action:
                   value_template: >
                     {{ states(repeat.item.entity) not in ['unavailable', 'unknown'] }}
               sequence:
-                    - service: mqtt.publish
-                      data:
-                        qos: 0
-                        retain: false
-                        topic: "{{ repeat.item.topic ~ message_topic }}"
-                        payload: "{{ payload_abfahrten }}"
-
+                - choose:
+                    - conditions:
+                      - condition: template
+                        value_template: >
+                          {{ persons_to_check == persons_home }}
+                      sequence:
+                        - service: mqtt.publish
+                          data:
+                            qos: 0
+                            retain: false
+                            topic: "{{ repeat.item.topic ~ message_topic }}"
+                            payload: "{{ payload_abfahrten }}"
+                    - conditions:
+                      - condition: template
+                        value_template: >
+                          {{ persons_to_check != persons_home }}
+                      sequence:
+                        - service: mqtt.publish
+                          data:
+                            qos: 0
+                            retain: false
+                            topic: "{{ repeat.item.topic ~ message_topic }}"
+                            payload: ""
+                        
