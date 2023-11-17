@@ -153,7 +153,7 @@ variables:
 
     {
       "icon": {{ icon }},
-      "repeat": 2,0
+      "repeat": 2,
       "textCase": 2,
       "text": [
         {
