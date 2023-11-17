@@ -36,6 +36,12 @@ blueprint:
       selector:
         text:
       default: "33013"
+    person_at_home:
+      name: Person
+      selector:
+        entity:
+          domain: person
+          multiple: true
 variables:
   device_ids: !input awtrix
   awtrix_devices: >-
