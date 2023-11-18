@@ -42,6 +42,14 @@ blueprint:
         entity:
           domain: person
           multiple: true
+      default: ""
+    time_relevant:
+      name: Caledar events when to show
+      selector:
+        entity:
+          domain: calendar
+      default: ""
+          
 variables:
   device_ids: !input awtrix
   awtrix_devices: >-
@@ -61,6 +69,8 @@ variables:
   persons_at_home: !input persons_home
   persons_to_check: "{{ persons_at_home | list | count > 0}}"
   persons_home: "{{ persons_at_home | select ('is_state', 'home') | list | count > 0}}"
+  time_relevant: !input time_relevant
+  show_times: "{{ states( time_relevant ) }}"
   payload_abfahrten: >-
     {%- set departure = state_attr( sensor_traintrack, 'real_departure' ) %}
     {%- set cancelled = state_attr( sensor_traintrack, 'cancelled') %}
@@ -153,7 +163,7 @@ variables:
 
     {
       "icon": {{ icon }},
-      "repeat": 2,0
+      "repeat": 2,
       "textCase": 2,
       "text": [
         {
@@ -199,19 +209,8 @@ action:
                     {{ states(repeat.item.entity) not in ['unavailable', 'unknown'] }}
               sequence:
                 - choose:
-                    - conditions:
-                      - condition: template
-                        value_template: >
-                          {{ persons_to_check == persons_home }}
-                      sequence:
-                        - service: mqtt.publish
-                          data:
-                            qos: 0
-                            retain: false
-                            topic: "{{ repeat.item.topic ~ message_topic }}"
-                            payload: "{{ payload_abfahrten }}"
-                    - conditions:
-                      - condition: template
+                    - conditions: 
+                      - condition:  template
                         value_template: >
                           {{ persons_to_check != persons_home }}
                       sequence:
@@ -221,4 +220,22 @@ action:
                             retain: false
                             topic: "{{ repeat.item.topic ~ message_topic }}"
                             payload: ""
+                    - conditions: 
+                      - condition: template
+                        value_template: >
+                          {{ show_times == 'off' }}
+                      sequence:
+                        - service: mqtt.publish
+                          data:
+                            qos: 0
+                            retain: false
+                            topic: "{{ repeat.item.topic ~ message_topic }}"
+                            payload: ""
+                  default:
+                    - service: mqtt.publish
+                      data:
+                        qos: 0
+                        retain: false
+                        topic: "{{ repeat.item.topic ~ message_topic }}"
+                        payload: "{{ payload_abfahrten }}"
                         
