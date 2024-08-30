@@ -21,7 +21,7 @@ from .const import CONF_DESTINATION, CONF_ONLY_DIRECT, CONF_PROFILE, CONF_START,
 _LOGGER = logging.getLogger(__name__)
 
 
-class Profile(StrEnum):
+class Profile(enum.StrEnum):
     """Enum of HaFAS profile type."""
 
     DB = "DB"
