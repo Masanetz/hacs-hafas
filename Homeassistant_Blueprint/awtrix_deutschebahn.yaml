@@ -1,5 +1,5 @@
 blueprint:
-  name: AWTRIX MyHAFAS
+  name: AWTRIX Deutsche Bahn
   domain: automation
   input:
     awtrix:
@@ -16,7 +16,7 @@ blueprint:
       description: Bahnverbindung
       selector:
         entity:
-          integration: myhafas
+          integration: deutschebahn
           multiple: false
     awtrix_app_name:
       name: AWTRIX Application name
